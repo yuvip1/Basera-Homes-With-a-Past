@@ -1,0 +1,11 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "workspaceRoot": ".",
+  "globalDependencies": ["**/.env*"],
+  "packages": [
+    "frontend",
+    "backend",
+    "vision",
+    "shared"
+  ]
+}

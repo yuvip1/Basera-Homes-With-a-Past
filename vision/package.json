@@ -1,0 +1,14 @@
+{
+  "name": "vision",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "echo 'Python service - use poetry/pip for dependencies'",
+    "build": "echo 'no build needed for research service'",
+    "lint": "echo 'python lint placeholder'",
+    "test": "echo 'python test placeholder'"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

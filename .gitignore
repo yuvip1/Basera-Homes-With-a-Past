@@ -1,0 +1,42 @@
+# Local environment secrets — never commit
+.env
+
+# Node modules
+node_modules/
+
+# Prisma generated client
+**/prisma/generated/
+
+# Local build artifacts
+.next/
+dist/
+build/
+
+# Local Docker volumes
+postgres_data/
+redis_data/
+
+# IDE
+.vscode/
+.idea/
+
+*.tsbuildinfo
+
+# Research workspace — Python environments and generated artifacts
+research/**/.venv/
+research/**/venv/
+research/**/__pycache__/
+research/**/*.pyc
+research/**/.ipynb_checkpoints/
+research/**/.pytest_cache/
+research/**/mlruns/
+research/**/.wandb/
+research/**/dvc/cache/
+
+# Large or private research data — keep samples small and committed
+research/datasets/raw/
+research/datasets/processed/
+research/**/*.pt
+research/**/*.pth
+research/**/*.onnx
+research/**/*.h5

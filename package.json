@@ -1,0 +1,29 @@
+{
+  "name": "basera",
+  "private": true,
+  "packageManager": "pnpm@12.16.1",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "vision",
+    "shared"
+  ],
+  "scripts": {
+    "lint": "pnpm --filter backend run lint && pnpm --filter frontend run lint",
+    "typecheck": "pnpm --filter backend run typecheck && pnpm --filter frontend run typecheck",
+    "test": "pnpm --filter backend run test && pnpm --filter frontend run test",
+    "build": "pnpm --filter backend run build && pnpm --filter frontend run build",
+    "migrate": "pnpm --filter backend run migrate",
+    "generate": "pnpm --filter backend run generate"
+  },
+  "dependencies": {
+    "@nestjs/config": "^12.0.1",
+    "@nestjs/jwt": "^12.0.3",
+    "@nestjs/passport": "^12.0.0",
+    "@nestjs/swagger": "^12.0.5",
+    "jose": "^6.2.14",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "rxjs": "^7.8.2"
+  }
+}

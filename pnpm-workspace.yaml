@@ -1,0 +1,19 @@
+packages:
+  - frontend
+  - backend
+  - vision
+  - shared
+allowBuilds:
+  '@nestjs/core': true
+  '@prisma/client': true
+  '@prisma/engines': true
+  esbuild: true
+  msgpackr-extract: true
+  prisma: true
+  sharp: true
+  unrs-resolver: true
+  # @scarf/scarf (transitive dep of swagger-ui-dist) only runs a postinstall
+  # telemetry script that phones home to scarf.sh. Deny it explicitly so
+  # pnpm does not error on an unapproved build script, while leaving the
+  # native build scripts above enabled.
+  '@scarf/scarf': false

@@ -1,0 +1,200 @@
+// Basera Phase 1 — Prisma schema
+// RLS policies, role grants, and exclusion constraints live in raw SQL migrations,
+// which are authoritative for those. Prisma manages table/column definitions only.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  GUEST
+  HOST
+  BOTH
+  ADMIN
+}
+
+enum AuthProvider {
+  GOOGLE
+  MAGIC_LINK
+}
+
+enum BookingStatus {
+  REQUESTED
+  DECLINED
+  AWAITING_PAYMENT
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum ReviewDirection {
+  guest_to_property
+  host_to_guest
+}
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  email         String    @unique
+  role          UserRole  @default(GUEST)
+  auth_provider AuthProvider
+  auth_subject  String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  properties        Property[]
+  bookings          Booking[]
+  reviewsWritten    Review[]    @relation("reviewer")
+  reviewsAbout      Review[]    @relation("target")
+  sessions          UserSession[]
+
+  @@unique([auth_provider, auth_subject])
+  @@index([auth_provider, auth_subject])
+  @@map("users")
+}
+
+model Property {
+  id            String    @id @default(uuid()) @db.Uuid
+  owner_id      String    @db.Uuid
+  name          String
+  description   String?
+  city          String?
+  state         String?
+  country       String?
+  property_type String?
+  is_published  Boolean  @default(false)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  owner         User      @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  bookings      Booking[]
+  reviews       Review[]  @relation("propertyReviews")
+  amenities     Amenity[]
+  photos        PropertyPhoto[]
+
+  @@index([owner_id])
+  @@index([is_published])
+  @@index([city])
+  @@map("properties")
+}
+
+model Booking {
+  id          String        @id @default(uuid()) @db.Uuid
+  guest_id    String        @db.Uuid
+  property_id String        @db.Uuid
+  status      BookingStatus @default(REQUESTED)
+  check_in    DateTime
+  check_out   DateTime
+  guests      Int?
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+
+  guest       User      @relation(fields: [guest_id], references: [id], onDelete: Cascade)
+  property    Property  @relation(fields: [property_id], references: [id], onDelete: Cascade)
+  reviews     Review[]
+
+  @@index([guest_id])
+  @@index([property_id])
+  @@index([status])
+  @@index([check_in, check_out])
+  @@map("bookings")
+}
+
+model Review {
+  id            String         @id @default(uuid()) @db.Uuid
+  reviewer_id   String         @db.Uuid
+  target_id     String?        @db.Uuid
+  property_id   String?        @db.Uuid
+  direction     ReviewDirection
+  booking_id    String?        @db.Uuid
+  title         String?
+  body          String?
+  rating        Int?
+  is_published  Boolean        @default(false)
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+
+  reviewer      User      @relation("reviewer", fields: [reviewer_id], references: [id], onDelete: Cascade)
+  target        User?      @relation("target", fields: [target_id], references: [id], onDelete: Cascade)
+  booking       Booking?  @relation(fields: [booking_id], references: [id], onDelete: SetNull)
+  property      Property?    @relation("propertyReviews", fields: [property_id], references: [id], onDelete: Cascade)
+  tags         ReviewTag[]  @relation("tags")
+
+  @@unique([reviewer_id, target_id, direction, booking_id])
+  @@index([reviewer_id])
+  @@index([target_id])
+  @@index([property_id])
+  @@index([direction])
+  @@index([is_published])
+  @@index([booking_id])
+  @@map("reviews")
+}
+
+model ReviewTag {
+  id        String    @id @default(uuid()) @db.Uuid
+  review_id String    @db.Uuid
+  tag       String
+  created_at DateTime @default(now())
+
+  review    Review @relation("tags", fields: [review_id], references: [id], onDelete: Cascade)
+
+  @@unique([review_id, tag])
+  @@index([review_id])
+  @@map("review_tags")
+}
+
+model Amenity {
+  id          String    @id @default(uuid()) @db.Uuid
+  property_id String    @db.Uuid
+  name        String
+  created_at  DateTime  @default(now())
+
+  property    Property @relation(fields: [property_id], references: [id], onDelete: Cascade)
+
+  @@unique([property_id, name])
+  @@index([property_id])
+  @@map("amenities")
+}
+
+model PropertyPhoto {
+  id          String    @id @default(uuid()) @db.Uuid
+  property_id String    @db.Uuid
+  url         String
+  caption     String?
+  created_at  DateTime  @default(now())
+
+  property    Property @relation(fields: [property_id], references: [id], onDelete: Cascade)
+
+  @@index([property_id])
+  @@map("property_photos")
+}
+
+model UserSession {
+  id            String    @id @default(uuid()) @db.Uuid
+  user_id       String    @db.Uuid
+  token_hash    String
+  expires_at    DateTime
+  created_at    DateTime  @default(now())
+
+  user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([token_hash], map: "user_sessions_token_hash_key")
+  @@index([user_id])
+  @@index([expires_at])
+  @@map("user_sessions")
+}
+
+model ExchangeCredit {
+  id        String   @id @default(uuid()) @db.Uuid
+  jti       String   @unique
+  created_at DateTime @default(now())
+  expires_at DateTime
+
+  @@index([expires_at])
+  @@map("exchange_credits")
+}
